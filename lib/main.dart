@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'theme/app_theme.dart';
 import 'services/macdroid_state.dart';
 import 'ui/home_dashboard.dart';
+import 'ui/screen_mirror_view.dart';
+import 'ui/notifications_view.dart';
+import 'ui/photos_gallery_view.dart';
+import 'ui/calls_and_sms_view.dart';
 import 'ui/clipboard_sync_view.dart';
 import 'ui/remote_file_explorer.dart';
 import 'ui/one_tap_transfer_view.dart';
@@ -70,9 +74,13 @@ class _MacDroidShellState extends State<MacDroidShell> {
       HomeDashboard(
         state: widget.state,
         onNavigateTab: (idx) {
-          setState(() => _selectedIndex = idx + 1);
+          setState(() => _selectedIndex = idx);
         },
       ),
+      ScreenMirrorView(state: widget.state),
+      NotificationsView(state: widget.state),
+      PhotosGalleryView(state: widget.state),
+      CallsAndSmsView(state: widget.state),
       ClipboardSyncView(state: widget.state),
       RemoteFileExplorer(state: widget.state),
       OneTapTransferView(state: widget.state),
@@ -137,15 +145,28 @@ class _MacDroidShellState extends State<MacDroidShell> {
                   ),
 
                   const Divider(color: AppTheme.border, height: 1),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
 
                   // Nav Items
-                  _buildNavItem(0, 'Dashboard', Icons.dashboard_rounded),
-                  _buildNavItem(1, 'Universal Clipboard', Icons.content_paste_rounded),
-                  _buildNavItem(2, 'Remote Storage', Icons.folder_open_rounded),
-                  _buildNavItem(3, '1-Tap Transfer', Icons.send_to_mobile_rounded),
-
-                  const Spacer(),
+                  Expanded(
+                    child: ListView(
+                      padding: EdgeInsets.zero,
+                      children: [
+                        _buildNavItem(0, 'Dashboard', Icons.dashboard_rounded),
+                        _buildNavItem(1, 'Screen Mirroring', Icons.phonelink_ring_rounded),
+                        _buildNavItem(2, 'Notifications', Icons.notifications_none_rounded, badgeCount: widget.state.notifications.length),
+                        _buildNavItem(3, 'Photos & Media', Icons.photo_library_outlined),
+                        _buildNavItem(4, 'Calls & SMS', Icons.phone_in_talk_rounded),
+                        const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                          child: Divider(color: AppTheme.border, height: 1),
+                        ),
+                        _buildNavItem(5, 'Universal Clipboard', Icons.content_paste_rounded),
+                        _buildNavItem(6, 'Remote Storage', Icons.folder_open_rounded),
+                        _buildNavItem(7, '1-Tap Transfer', Icons.send_to_mobile_rounded),
+                      ],
+                    ),
+                  ),
 
                   // Bottom Device Status Pill
                   Padding(
@@ -237,30 +258,39 @@ class _MacDroidShellState extends State<MacDroidShell> {
           children: pages,
         ),
         bottomNavigationBar: NavigationBar(
-          selectedIndex: _selectedIndex,
+          selectedIndex: _selectedIndex.clamp(0, 4),
           backgroundColor: AppTheme.surface,
           indicatorColor: AppTheme.primary.withOpacity(0.2),
           onDestinationSelected: (idx) => setState(() => _selectedIndex = idx),
-          destinations: const [
-            NavigationDestination(
+          destinations: [
+            const NavigationDestination(
               icon: Icon(Icons.dashboard_outlined),
               selectedIcon: Icon(Icons.dashboard_rounded, color: AppTheme.accent),
-              label: 'Dashboard',
+              label: 'Home',
+            ),
+            const NavigationDestination(
+              icon: Icon(Icons.phonelink_ring_outlined),
+              selectedIcon: Icon(Icons.phonelink_ring_rounded, color: AppTheme.accent),
+              label: 'Mirror',
             ),
             NavigationDestination(
-              icon: Icon(Icons.content_paste_outlined),
-              selectedIcon: Icon(Icons.content_paste_rounded, color: AppTheme.accent),
-              label: 'Clipboard',
+              icon: Badge(
+                isLabelVisible: widget.state.notifications.isNotEmpty,
+                label: Text('${widget.state.notifications.length}'),
+                child: const Icon(Icons.notifications_none_rounded),
+              ),
+              selectedIcon: const Icon(Icons.notifications_rounded, color: AppTheme.accent),
+              label: 'Alerts',
             ),
-            NavigationDestination(
-              icon: Icon(Icons.folder_outlined),
-              selectedIcon: Icon(Icons.folder_open_rounded, color: AppTheme.accent),
-              label: 'Files',
+            const NavigationDestination(
+              icon: Icon(Icons.photo_library_outlined),
+              selectedIcon: Icon(Icons.photo_library_rounded, color: AppTheme.accent),
+              label: 'Photos',
             ),
-            NavigationDestination(
-              icon: Icon(Icons.swap_vert_rounded),
-              selectedIcon: Icon(Icons.send_to_mobile_rounded, color: AppTheme.accent),
-              label: 'Transfer',
+            const NavigationDestination(
+              icon: Icon(Icons.phone_outlined),
+              selectedIcon: Icon(Icons.phone_rounded, color: AppTheme.accent),
+              label: 'Calls',
             ),
           ],
         ),
@@ -268,18 +298,18 @@ class _MacDroidShellState extends State<MacDroidShell> {
     }
   }
 
-  Widget _buildNavItem(int index, String label, IconData icon) {
+  Widget _buildNavItem(int index, String label, IconData icon, {int? badgeCount}) {
     final isSelected = _selectedIndex == index;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(10),
           onTap: () => setState(() => _selectedIndex = index),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
               color: isSelected ? AppTheme.primary.withOpacity(0.12) : Colors.transparent,
               borderRadius: BorderRadius.circular(10),
@@ -294,6 +324,7 @@ class _MacDroidShellState extends State<MacDroidShell> {
                   size: 18,
                   color: isSelected ? AppTheme.accent : AppTheme.textSecondary,
                 ),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     label,
@@ -305,6 +336,22 @@ class _MacDroidShellState extends State<MacDroidShell> {
                     ),
                   ),
                 ),
+                if (badgeCount != null && badgeCount > 0)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppTheme.accent.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      '$badgeCount',
+                      style: const TextStyle(
+                        color: AppTheme.accent,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),

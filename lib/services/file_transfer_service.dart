@@ -127,6 +127,12 @@ class FileTransferService {
     }
   }
 
+  // Handle incoming download request (peer asking us to send them a file)
+  Future<void> handleIncomingDownloadRequest(Map<String, dynamic> data, String peerDeviceId) async {
+    final remotePath = data['remotePath'] as String;
+    await sendFile(filePath: remotePath, peerDeviceId: peerDeviceId);
+  }
+
   // Handle incoming transfer request
   Future<void> handleIncomingRequest(Map<String, dynamic> data) async {
     final transferId = data['transferId'] as String;

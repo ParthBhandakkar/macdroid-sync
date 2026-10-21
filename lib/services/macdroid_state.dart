@@ -4,12 +4,24 @@ import '../models/peer_device.dart';
 import '../models/clipboard_entry.dart';
 import '../models/remote_file_entry.dart';
 import '../models/transfer_task.dart';
+import '../models/notification_entry.dart';
+import '../models/device_telemetry.dart';
+import '../models/photo_entry.dart';
+import '../models/telephony_models.dart';
+import '../models/now_playing_info.dart';
+import '../models/screen_mirror_models.dart';
 import '../protocols/macdroid_protocol.dart';
 import 'clipboard_sync_service.dart';
 import 'remote_file_service.dart';
 import 'file_transfer_service.dart';
 import 'macdroid_signaling_service.dart';
 import 'qr_pairing_service.dart';
+import 'notification_sync_service.dart';
+import 'device_telemetry_service.dart';
+import 'photos_sync_service.dart';
+import 'telephony_service.dart';
+import 'media_control_service.dart';
+import 'screen_mirror_service.dart';
 
 class MacDroidState extends ChangeNotifier {
   late final String localDeviceId;
@@ -39,6 +51,14 @@ class MacDroidState extends ChangeNotifier {
   // Signaling
   late final MacdroidSignalingService _signaling;
 
+  // Additional Features
+  late final NotificationSyncService notificationSync;
+  late final DeviceTelemetryService telemetryService;
+  late final PhotosSyncService photosSync;
+  late final TelephonyService telephonyService;
+  late final MediaControlService mediaControl;
+  late final ScreenMirrorService screenMirror;
+
   MacDroidState({bool autoConnect = true}) {
     _initDeviceIdentity();
     _initServices(autoConnect: autoConnect);
@@ -53,6 +73,15 @@ class MacDroidState extends ChangeNotifier {
   bool get isLoadingFiles => _isLoadingFiles;
   bool get isConnected => _signaling.isConnected;
   bool get isAutoClipboardEnabled => _clipboardSync.isAutoSyncEnabled;
+
+  // Convenience getters for sub-services
+  List<NotificationEntry> get notifications => notificationSync.notifications;
+  DeviceTelemetry get telemetry => telemetryService.telemetry;
+  List<PhotoEntry> get photos => photosSync.photos;
+  List<CallLogEntry> get calls => telephonyService.calls;
+  List<SmsConversation> get smsConversations => telephonyService.conversations;
+  List<SmsMessage> get activeSmsMessages => telephonyService.activeConversationMessages;
+  NowPlayingInfo get nowPlaying => mediaControl.nowPlaying;
 
   void _initDeviceIdentity() {
     final rand = DateTime.now().millisecondsSinceEpoch % 10000;
@@ -102,10 +131,6 @@ class MacDroidState extends ChangeNotifier {
         notifyListeners();
       },
     );
-    if (autoConnect) {
-      _clipboardSync.start();
-      connectSignaling(currentSessionId);
-    }
 
     _transferService = FileTransferService(
       sendMessage: _broadcastMessage,
@@ -113,6 +138,41 @@ class MacDroidState extends ChangeNotifier {
         notifyListeners();
       },
     );
+
+    notificationSync = NotificationSyncService(
+      sendMessage: _broadcastMessage,
+      onStateUpdated: notifyListeners,
+    );
+
+    telemetryService = DeviceTelemetryService(
+      sendMessage: _broadcastMessage,
+      onStateUpdated: notifyListeners,
+    );
+
+    photosSync = PhotosSyncService(
+      sendMessage: _broadcastMessage,
+      onStateUpdated: notifyListeners,
+    );
+
+    telephonyService = TelephonyService(
+      sendMessage: _broadcastMessage,
+      onStateUpdated: notifyListeners,
+    );
+
+    mediaControl = MediaControlService(
+      sendMessage: _broadcastMessage,
+      onStateUpdated: notifyListeners,
+    );
+
+    screenMirror = ScreenMirrorService(
+      sendMessage: _broadcastMessage,
+      onStateUpdated: notifyListeners,
+    );
+
+    if (autoConnect) {
+      _clipboardSync.start();
+      connectSignaling(currentSessionId);
+    }
   }
 
   void connectSignaling(String roomId) {
@@ -191,12 +251,64 @@ class MacDroidState extends ChangeNotifier {
           .map((e) => RemoteFileEntry.fromJson(e as Map<String, dynamic>))
           .toList();
       notifyListeners();
+    } else if (type == MacDroidProtocol.typeFileDownloadRequest) {
+      _transferService.handleIncomingDownloadRequest(msg, _activePeer?.id ?? 'remote');
     } else if (type == MacDroidProtocol.typeFileTransferRequest) {
       _transferService.handleIncomingRequest(msg);
     } else if (type == MacDroidProtocol.typeFileTransferChunk) {
       _transferService.handleIncomingChunk(msg);
     } else if (type == MacDroidProtocol.typeFileTransferComplete) {
       _transferService.handleIncomingComplete(msg);
+    } else if (type == MacDroidProtocol.typeNotificationPosted) {
+      if (msg['entry'] is Map<String, dynamic>) {
+        notificationSync.handleIncomingNotification(
+          NotificationEntry.fromJson(msg['entry'] as Map<String, dynamic>),
+        );
+      }
+    } else if (type == MacDroidProtocol.typeNotificationDismissed) {
+      final id = msg['id'] as String?;
+      if (id != null) {
+        notificationSync.handleIncomingDismiss(id);
+      }
+    } else if (type == MacDroidProtocol.typeNotificationReply) {
+      // Handled if acting as mobile recipient
+    } else if (type == MacDroidProtocol.typeTelemetryUpdate) {
+      telemetryService.handleIncomingTelemetry(msg);
+    } else if (type == MacDroidProtocol.typeTelemetryCommand) {
+      final cmd = msg['command'] as String?;
+      if (cmd != null) {
+        telemetryService.handleIncomingCommand(cmd, msg['value']);
+      }
+    } else if (type == MacDroidProtocol.typePhotosListRequest) {
+      // Return photos
+      _broadcastMessage(MacDroidProtocol.createPhotosListResponse(photosSync.photos));
+    } else if (type == MacDroidProtocol.typePhotosListResponse) {
+      final rawList = msg['photos'] as List<dynamic>? ?? [];
+      final photos = rawList
+          .map((p) => PhotoEntry.fromJson(p as Map<String, dynamic>))
+          .toList();
+      photosSync.handleIncomingPhotos(photos);
+    } else if (type == MacDroidProtocol.typeCallDialRequest) {
+      // Remote requested dial
+    } else if (type == MacDroidProtocol.typeSmsSendRequest) {
+      // Remote requested SMS send
+    } else if (type == MacDroidProtocol.typeMediaUpdate) {
+      mediaControl.handleIncomingMedia(msg);
+    } else if (type == MacDroidProtocol.typeMediaCommand) {
+      final cmd = msg['command'] as String?;
+      if (cmd != null) {
+        mediaControl.handleIncomingCommand(cmd);
+      }
+    } else if (type == MacDroidProtocol.typeScreenFrame) {
+      screenMirror.handleIncomingFrame(ScreenFrameMessage.fromJson(msg));
+    } else if (type == MacDroidProtocol.typeInputTouch) {
+      screenMirror.handleIncomingTouch(TouchInputEvent.fromJson(msg));
+    } else if (type == MacDroidProtocol.typeInputNav) {
+      final action = msg['action'] as String?;
+      if (action != null) screenMirror.handleIncomingNav(action);
+    } else if (type == MacDroidProtocol.typePrivacyScreenToggle) {
+      final blank = msg['blankEnabled'] as bool? ?? false;
+      screenMirror.handleIncomingPrivacyToggle(blank);
     }
   }
 
@@ -221,6 +333,16 @@ class MacDroidState extends ChangeNotifier {
     } else {
       browseRemoteDirectory('/');
     }
+  }
+
+  // Download remote file to local machine
+  Future<void> downloadRemoteFile(RemoteFileEntry file) async {
+    final reqId = 'dl-${DateTime.now().millisecondsSinceEpoch}';
+    _broadcastMessage(MacDroidProtocol.createFileDownloadRequest(
+      requestId: reqId,
+      remotePath: file.path,
+      fileName: file.name,
+    ));
   }
 
   // One-tap file send

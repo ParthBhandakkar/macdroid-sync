@@ -1,0 +1,115 @@
+name: Build Native Apps for Windows, Mac & Android
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  # 1. Build Native Android APK
+  build-android:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          flutter-version: '3.47.7'
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Run Self-Check
+        run: dart test/macdroid_self_check.dart
+
+      - name: Build Android Release APK
+        run: flutter build apk --release
+
+      - name: Upload Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: macdroid-android-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+
+  # 2. Build Native Windows Desktop App (.exe)
+  build-windows:
+    name: Build Windows Native App (.exe)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          flutter-version: '3.47.7'
+
+      - name: Enable Windows Desktop
+        run: flutter config --enable-windows-desktop
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Run Self-Check
+        run: dart test/macdroid_self_check.dart
+
+      - name: Build Windows Desktop Release
+        run: flutter build windows --release
+
+      - name: Compress Windows Build
+        shell: pwsh
+        run: |
+          Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath build/macdroid-windows-x64.zip
+
+      - name: Upload Windows Bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: macdroid-windows-x64
+          path: build/macdroid-windows-x64.zip
+
+  # 3. Build Native macOS Desktop App (.app)
+  build-macos:
+    name: Build macOS Native App (.app)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          flutter-version: '3.47.7'
+
+      - name: Enable macOS Desktop
+        run: flutter config --enable-macos-desktop
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Run Self-Check
+        run: dart test/macdroid_self_check.dart
+
+      - name: Build macOS Desktop Release
+        run: flutter build macos --release
+
+      - name: Compress macOS App
+        run: |
+          cd build/macos/Build/Products/Release
+          zip -r -y ../../../../../macdroid-macos.zip macdroid.app
+
+      - name: Upload macOS Bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: macdroid-macos
+          path: macdroid-macos.zip

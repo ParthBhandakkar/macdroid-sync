@@ -39,9 +39,9 @@ class MacDroidState extends ChangeNotifier {
   // Signaling
   late final MacdroidSignalingService _signaling;
 
-  MacDroidState() {
+  MacDroidState({bool autoConnect = true}) {
     _initDeviceIdentity();
-    _initServices();
+    _initServices(autoConnect: autoConnect);
   }
 
   List<PeerDevice> get peers => _peers;
@@ -79,7 +79,7 @@ class MacDroidState extends ChangeNotifier {
     }
   }
 
-  void _initServices() {
+  void _initServices({bool autoConnect = true}) {
     _signaling = MacdroidSignalingService(
       deviceId: localDeviceId,
       deviceName: localDeviceName,
@@ -102,7 +102,10 @@ class MacDroidState extends ChangeNotifier {
         notifyListeners();
       },
     );
-    _clipboardSync.start();
+    if (autoConnect) {
+      _clipboardSync.start();
+      connectSignaling(currentSessionId);
+    }
 
     _transferService = FileTransferService(
       sendMessage: _broadcastMessage,
@@ -110,9 +113,6 @@ class MacDroidState extends ChangeNotifier {
         notifyListeners();
       },
     );
-
-    // Auto-connect to default room
-    connectSignaling(currentSessionId);
   }
 
   void connectSignaling(String roomId) {

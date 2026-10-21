@@ -16,7 +16,7 @@ class MacDroidState extends ChangeNotifier {
   late final String localDeviceName;
   late final DevicePlatform localPlatform;
 
-  String signalingServerUrl = 'ws://127.0.0.1:8765';
+  String signalingServerUrl = 'wss://macdroid-relay.onrender.com';
   String currentSessionId = 'MD-DEMO-ROOM';
 
   // Connected peers

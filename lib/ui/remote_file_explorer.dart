@@ -282,10 +282,10 @@ class _RemoteFileExplorerState extends State<RemoteFileExplorer> {
                                                 textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
                                               ),
                                               onPressed: () {
-                                                // Trigger remote download request
+                                                widget.state.downloadRemoteFile(entry);
                                                 ScaffoldMessenger.of(context).showSnackBar(
                                                   SnackBar(
-                                                    content: Text('Downloading ${entry.name}...'),
+                                                    content: Text('Requesting download of ${entry.name}...'),
                                                     backgroundColor: AppTheme.primary,
                                                   ),
                                                 );

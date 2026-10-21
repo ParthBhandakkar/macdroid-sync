@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../models/peer_device.dart';
 import '../services/macdroid_state.dart';
 import '../theme/app_theme.dart';
@@ -282,26 +281,46 @@ class HomeDashboard extends StatelessWidget {
                       state.telemetryService.setRingerMode(next);
                     },
                   ),
-                  // Find My Phone
-                  OutlinedButton.icon(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppTheme.rose,
-                      side: const BorderSide(color: AppTheme.rose),
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                    ),
-                    icon: const Icon(Icons.ring_volume_rounded, size: 16),
-                    label: const Text('Find My Phone'),
-                    onPressed: () {
-                      state.telemetryService.triggerFindMyPhone();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Playing high-pitch alert sound on mobile device...'),
-                          backgroundColor: AppTheme.rose,
+                  // Find My Phone / Stop Ringing
+                  state.telemetryService.isAlarmRinging
+                      ? ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.rose,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                            textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                          ),
+                          icon: const Icon(Icons.volume_off_rounded, size: 16),
+                          label: const Text('Stop Ringing'),
+                          onPressed: () {
+                            state.telemetryService.stopFindMyPhone();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Silenced phone alarm.'),
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+                          },
+                        )
+                      : OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppTheme.rose,
+                            side: const BorderSide(color: AppTheme.rose),
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                          ),
+                          icon: const Icon(Icons.ring_volume_rounded, size: 16),
+                          label: const Text('Find My Phone'),
+                          onPressed: () {
+                            state.telemetryService.triggerFindMyPhone();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Playing high-pitch alert sound on mobile device...'),
+                                backgroundColor: AppTheme.rose,
+                              ),
+                            );
+                          },
                         ),
-                      );
-                    },
-                  ),
                 ],
               ),
             ),

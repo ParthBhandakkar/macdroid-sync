@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import '../services/macdroid_state.dart';
 import '../theme/app_theme.dart';
-import '../models/peer_device.dart';
 
 class ClipboardSyncView extends StatefulWidget {
   final MacDroidState state;

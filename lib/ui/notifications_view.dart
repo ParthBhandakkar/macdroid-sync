@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/notification_entry.dart';
 import '../services/macdroid_state.dart';
+import '../services/native_platform_service.dart';
 import '../theme/app_theme.dart';
 
 class NotificationsView extends StatefulWidget {
@@ -149,6 +150,16 @@ class _NotificationsViewState extends State<NotificationsView> {
                 Wrap(
                   spacing: 10,
                   children: [
+                    if (NativePlatformService.isAndroid)
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.accent,
+                          foregroundColor: Colors.white,
+                        ),
+                        icon: const Icon(Icons.settings_suggest_rounded, size: 16),
+                        label: const Text('Grant Notification Access'),
+                        onPressed: () => NativePlatformService.openNotificationSettings(),
+                      ),
                     OutlinedButton.icon(
                       icon: const Icon(Icons.add_alert_rounded, size: 16),
                       label: const Text('Simulate Push'),

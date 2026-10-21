@@ -22,6 +22,7 @@ import 'photos_sync_service.dart';
 import 'telephony_service.dart';
 import 'media_control_service.dart';
 import 'screen_mirror_service.dart';
+import 'native_platform_service.dart';
 
 class MacDroidState extends ChangeNotifier {
   late final String localDeviceId;
@@ -169,6 +170,38 @@ class MacDroidState extends ChangeNotifier {
       onStateUpdated: notifyListeners,
     );
 
+    if (NativePlatformService.isAndroid) {
+      NativePlatformService.initializeCallbacks(
+        onNotificationPosted: (map) {
+          final entry = NotificationEntry(
+            id: map['id']?.toString() ?? 'notif-${DateTime.now().millisecondsSinceEpoch}',
+            appName: map['appName']?.toString() ?? 'Android',
+            appPackage: map['packageName']?.toString() ?? 'android',
+            title: map['title']?.toString() ?? '',
+            body: map['body']?.toString() ?? '',
+            timestamp: map['timestamp'] != null
+                ? DateTime.fromMillisecondsSinceEpoch((map['timestamp'] as num).toInt())
+                : DateTime.now(),
+            hasReplyAction: map['hasQuickReply'] as bool? ?? false,
+          );
+          notificationSync.handleIncomingNotification(entry);
+          _broadcastMessage(MacDroidProtocol.createNotificationPosted(entry));
+          notifyListeners();
+        },
+        onNotificationDismissed: (id) {
+          notificationSync.handleIncomingDismiss(id);
+          _broadcastMessage(MacDroidProtocol.createNotificationDismissed(id));
+          notifyListeners();
+        },
+      );
+
+      NativePlatformService.getRecentPhotos(limit: 30).then((realPhotos) {
+        if (realPhotos.isNotEmpty) {
+          photosSync.handleIncomingPhotos(realPhotos);
+        }
+      });
+    }
+
     if (autoConnect) {
       _clipboardSync.start();
       connectSignaling(currentSessionId);
@@ -223,6 +256,9 @@ class MacDroidState extends ChangeNotifier {
             deviceName: localDeviceName,
             platform: localPlatform.name,
           ));
+          if (localPlatform == DevicePlatform.android) {
+            telemetryService.broadcastCurrentState();
+          }
         }
       }
     } else if (type == MacDroidProtocol.typeClipboardSync) {
@@ -280,8 +316,13 @@ class MacDroidState extends ChangeNotifier {
         telemetryService.handleIncomingCommand(cmd, msg['value']);
       }
     } else if (type == MacDroidProtocol.typePhotosListRequest) {
-      // Return photos
-      _broadcastMessage(MacDroidProtocol.createPhotosListResponse(photosSync.photos));
+      if (NativePlatformService.isAndroid) {
+        NativePlatformService.getRecentPhotos(limit: 40).then((realPhotos) {
+          _broadcastMessage(MacDroidProtocol.createPhotosListResponse(realPhotos));
+        });
+      } else {
+        _broadcastMessage(MacDroidProtocol.createPhotosListResponse(photosSync.photos));
+      }
     } else if (type == MacDroidProtocol.typePhotosListResponse) {
       final rawList = msg['photos'] as List<dynamic>? ?? [];
       final photos = rawList
@@ -289,9 +330,16 @@ class MacDroidState extends ChangeNotifier {
           .toList();
       photosSync.handleIncomingPhotos(photos);
     } else if (type == MacDroidProtocol.typeCallDialRequest) {
-      // Remote requested dial
+      final number = msg['phoneNumber'] as String?;
+      if (number != null && NativePlatformService.isAndroid) {
+        NativePlatformService.dialCall(number);
+      }
     } else if (type == MacDroidProtocol.typeSmsSendRequest) {
-      // Remote requested SMS send
+      final recipient = msg['recipient'] as String?;
+      final text = msg['text'] as String?;
+      if (recipient != null && text != null && NativePlatformService.isAndroid) {
+        NativePlatformService.sendSms(recipient, text);
+      }
     } else if (type == MacDroidProtocol.typeMediaUpdate) {
       mediaControl.handleIncomingMedia(msg);
     } else if (type == MacDroidProtocol.typeMediaCommand) {

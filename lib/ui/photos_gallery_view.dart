@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../models/photo_entry.dart';
 import '../services/macdroid_state.dart';
@@ -123,7 +124,7 @@ class _PhotosGalleryViewState extends State<PhotosGalleryView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Preview Container / Mock visual
+          // Preview Container / Real or Mock visual
           Expanded(
             child: InkWell(
               onTap: () => _openLightbox(photo),
@@ -132,13 +133,26 @@ class _PhotosGalleryViewState extends State<PhotosGalleryView> {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    Center(
-                      child: Icon(
-                        photo.name.endsWith('.png') ? Icons.screenshot_rounded : Icons.image_rounded,
-                        size: 48,
-                        color: AppTheme.primary.withOpacity(0.5),
+                    if (photo.thumbnailBase64 != null && photo.thumbnailBase64!.isNotEmpty)
+                      Image.memory(
+                        base64Decode(photo.thumbnailBase64!),
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Center(
+                          child: Icon(
+                            photo.name.endsWith('.png') ? Icons.screenshot_rounded : Icons.image_rounded,
+                            size: 48,
+                            color: AppTheme.primary.withOpacity(0.5),
+                          ),
+                        ),
+                      )
+                    else
+                      Center(
+                        child: Icon(
+                          photo.name.endsWith('.png') ? Icons.screenshot_rounded : Icons.image_rounded,
+                          size: 48,
+                          color: AppTheme.primary.withOpacity(0.5),
+                        ),
                       ),
-                    ),
                     Positioned(
                       bottom: 8,
                       right: 8,
@@ -246,26 +260,34 @@ class _PhotosGalleryViewState extends State<PhotosGalleryView> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.image_rounded,
-                          size: 80,
-                          color: AppTheme.accent.withOpacity(0.6),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          '${photo.width ?? 4032} × ${photo.height ?? 3024}',
-                          style: const TextStyle(color: AppTheme.textMuted),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          photo.path,
-                          style: const TextStyle(fontSize: 11, color: AppTheme.textMuted),
-                        ),
-                      ],
-                    ),
+                    child: photo.thumbnailBase64 != null && photo.thumbnailBase64!.isNotEmpty
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: Image.memory(
+                              base64Decode(photo.thumbnailBase64!),
+                              fit: BoxFit.contain,
+                            ),
+                          )
+                        : Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.image_rounded,
+                                size: 80,
+                                color: AppTheme.accent.withOpacity(0.6),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                '${photo.width ?? 4032} × ${photo.height ?? 3024}',
+                                style: const TextStyle(color: AppTheme.textMuted),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                photo.path,
+                                style: const TextStyle(fontSize: 11, color: AppTheme.textMuted),
+                              ),
+                            ],
+                          ),
                   ),
                 ),
               ),

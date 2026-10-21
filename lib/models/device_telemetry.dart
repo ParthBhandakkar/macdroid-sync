@@ -99,19 +99,19 @@ class DeviceTelemetry {
 
   factory DeviceTelemetry.fromJson(Map<String, dynamic> json) {
     return DeviceTelemetry(
-      batteryLevel: json['batteryLevel'] as int? ?? 100,
+      batteryLevel: (json['batteryLevel'] as num?)?.toInt() ?? 100,
       isCharging: json['isCharging'] as bool? ?? false,
       wifiSsid: json['wifiSsid'] as String?,
-      wifiStrength: json['wifiStrength'] as int? ?? 4,
+      wifiStrength: (json['wifiStrength'] as num?)?.toInt() ?? 4,
       cellularCarrier: json['cellularCarrier'] as String?,
-      cellularBars: json['cellularBars'] as int? ?? 4,
-      storageFreeBytes: json['storageFreeBytes'] as int? ?? 64000000000,
-      storageTotalBytes: json['storageTotalBytes'] as int? ?? 128000000000,
+      cellularBars: (json['cellularBars'] as num?)?.toInt() ?? 4,
+      storageFreeBytes: (json['storageFreeBytes'] as num?)?.toInt() ?? 64000000000,
+      storageTotalBytes: (json['storageTotalBytes'] as num?)?.toInt() ?? 128000000000,
       isDoNotDisturb: json['isDoNotDisturb'] as bool? ?? false,
       ringerMode: json['ringerMode'] as String? ?? 'normal',
       isHotspotOn: json['isHotspotOn'] as bool? ?? false,
       lastUpdated: json['lastUpdated'] != null
-          ? DateTime.fromMillisecondsSinceEpoch(json['lastUpdated'] as int)
+          ? DateTime.fromMillisecondsSinceEpoch((json['lastUpdated'] as num).toInt())
           : DateTime.now(),
     );
   }

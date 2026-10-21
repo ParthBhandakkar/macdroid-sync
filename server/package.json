@@ -1,0 +1,21 @@
+{
+  "name": "macdroid-relay",
+  "version": "1.0.0",
+  "description": "Cross-network WebRTC signaling and companion server for macDroid",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "macdroid",
+    "webrtc",
+    "signaling",
+    "clipboard",
+    "p2p"
+  ],
+  "author": "macDroid",
+  "license": "MIT"
+}

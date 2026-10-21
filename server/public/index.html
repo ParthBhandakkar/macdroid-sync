@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>macDroid Companion - Cross-Platform Sync</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Navigation Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo-box">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="17 1 21 5 17 9"></polyline>
+            <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
+            <polyline points="7 23 3 19 7 15"></polyline>
+            <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>macDroid</h1>
+          <span>Mac • Win • Android</span>
+        </div>
+      </div>
+
+      <nav class="nav-menu">
+        <button class="nav-item active" data-tab="dashboard">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+          Dashboard
+        </button>
+        <button class="nav-item" data-tab="clipboard">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+          Clipboard
+        </button>
+        <button class="nav-item" data-tab="files">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+          Remote Files
+        </button>
+        <button class="nav-item" data-tab="transfers">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+          1-Tap Transfer
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="device-pill">
+          <div class="status-dot connected"></div>
+          <div class="device-info">
+            <strong id="sidebar-device-name">My Device</strong>
+            <span id="sidebar-room-name">Mesh Active</span>
+          </div>
+          <button id="btn-show-qr" class="icon-btn" title="Pair Device">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- DASHBOARD TAB -->
+      <section id="tab-dashboard" class="tab-pane active">
+        <header class="page-header">
+          <div>
+            <h2>Dashboard</h2>
+            <p>Cross-network connection hub for macOS, Windows, and Android</p>
+          </div>
+          <button id="btn-pair-hero" class="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+            Pair New Device
+          </button>
+        </header>
+
+        <!-- Active Peer Hero -->
+        <div class="hero-card">
+          <div class="hero-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+          </div>
+          <div class="hero-content">
+            <div class="hero-title-row">
+              <h3 id="hero-peer-name">No Active Peer Connected</h3>
+              <span id="hero-peer-badge" class="badge">Awaiting Pair</span>
+            </div>
+            <p id="hero-peer-desc">Scan the QR code from your Android phone or PC to pair over any network.</p>
+          </div>
+        </div>
+
+        <!-- Quick Access Grid -->
+        <div class="feature-grid">
+          <div class="feature-card" data-nav="clipboard">
+            <div class="card-icon indigo">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+            </div>
+            <h4>Universal Clipboard</h4>
+            <p>Instant bidirectional copy/paste between devices.</p>
+            <div id="quick-clip-preview" class="code-preview">Waiting for clip...</div>
+          </div>
+
+          <div class="feature-card" data-nav="files">
+            <div class="card-icon cyan">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+            </div>
+            <h4>Remote Storage</h4>
+            <p>Browse phone/PC folders & download in 1-tap.</p>
+            <span class="link-label">Browse Files &rarr;</span>
+          </div>
+
+          <div class="feature-card" data-nav="transfers">
+            <div class="card-icon emerald">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+            </div>
+            <h4>1-Tap Transfer</h4>
+            <p>Drop any file. Fast 64KB chunked binary streams.</p>
+            <span class="link-label">Send Files &rarr;</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- CLIPBOARD TAB -->
+      <section id="tab-clipboard" class="tab-pane">
+        <header class="page-header">
+          <div>
+            <h2>Universal Clipboard</h2>
+            <p>Copy on Mac, paste on Android. Copy on Android, paste on Windows.</p>
+          </div>
+          <div class="sync-switch-box">
+            <span class="status-dot connected"></span>
+            <span>Auto-Sync Active</span>
+          </div>
+        </header>
+
+        <div class="push-box">
+          <input type="text" id="manual-clip-input" placeholder="Type or paste text to broadcast to all devices...">
+          <button id="btn-broadcast-clip" class="btn btn-primary">Broadcast</button>
+        </div>
+
+        <h3>Synced Clipboard History</h3>
+        <div id="clipboard-list" class="item-list"></div>
+      </section>
+
+      <!-- REMOTE FILES TAB -->
+      <section id="tab-files" class="tab-pane">
+        <header class="page-header">
+          <div>
+            <h2>Remote Device Storage</h2>
+            <p>Browse folders and files on your paired device.</p>
+          </div>
+        </header>
+
+        <div class="file-nav-bar">
+          <button id="btn-dir-up" class="btn btn-secondary">&uarr; Up</button>
+          <button id="btn-dir-refresh" class="btn btn-secondary">&#8635; Refresh</button>
+          <input type="text" id="dir-path-input" value="/storage/emulated/0" class="path-input">
+          <input type="text" id="file-filter-input" placeholder="Filter files..." class="filter-input">
+        </div>
+
+        <div id="file-explorer-list" class="file-grid"></div>
+      </section>
+
+      <!-- TRANSFERS TAB -->
+      <section id="tab-transfers" class="tab-pane">
+        <header class="page-header">
+          <div>
+            <h2>One-Tap File Transfer</h2>
+            <p>Drag & drop any file to send across devices with real-time speed.</p>
+          </div>
+        </header>
+
+        <div id="dropzone" class="dropzone-box">
+          <input type="file" id="file-input" multiple style="display: none;">
+          <div class="drop-icon">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+          </div>
+          <h3>Tap or Drop Files Here to Send</h3>
+          <p>Any file type: Photos, Videos, Documents, APKs. No size limit.</p>
+        </div>
+
+        <h3>Active & Recent Transfers</h3>
+        <div id="transfers-list" class="item-list"></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- QR Pairing Modal -->
+  <div id="qr-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Pair Device via QR</h3>
+        <button id="btn-close-modal" class="icon-btn">&times;</button>
+      </div>
+      <p>Scan with your phone or other computer to connect across any network.</p>
+      
+      <div class="qr-container">
+        <div id="qrcode"></div>
+      </div>
+
+      <div class="room-code-badge">
+        <span>Room Code:</span>
+        <strong id="modal-room-id">DEMO-ROOM</strong>
+        <button id="btn-copy-room" class="btn btn-sm">Copy</button>
+      </div>
+
+      <div class="divider"><span>OR JOIN EXISTING ROOM</span></div>
+
+      <div class="join-row">
+        <input type="text" id="join-room-input" placeholder="Enter Room Code...">
+        <button id="btn-join-room" class="btn btn-primary">Connect</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

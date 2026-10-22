@@ -238,61 +238,89 @@ class _MacDroidShellState extends State<MacDroidShell> {
       );
     } else {
       // Mobile / Android layout with Bottom Navigation Bar
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('macDroid'),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.qr_code_scanner_rounded),
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (_) => PairingQrDialog(state: widget.state),
-                );
-              },
-            ),
-          ],
-        ),
-        body: IndexedStack(
-          index: _selectedIndex,
-          children: pages,
-        ),
-        bottomNavigationBar: NavigationBar(
-          selectedIndex: _selectedIndex.clamp(0, 4),
-          backgroundColor: AppTheme.surface,
-          indicatorColor: AppTheme.primary.withOpacity(0.2),
-          onDestinationSelected: (idx) => setState(() => _selectedIndex = idx),
-          destinations: [
-            const NavigationDestination(
-              icon: Icon(Icons.dashboard_outlined),
-              selectedIcon: Icon(Icons.dashboard_rounded, color: AppTheme.accent),
-              label: 'Home',
-            ),
-            const NavigationDestination(
-              icon: Icon(Icons.phonelink_ring_outlined),
-              selectedIcon: Icon(Icons.phonelink_ring_rounded, color: AppTheme.accent),
-              label: 'Mirror',
-            ),
-            NavigationDestination(
-              icon: Badge(
-                isLabelVisible: widget.state.notifications.isNotEmpty,
-                label: Text('${widget.state.notifications.length}'),
-                child: const Icon(Icons.notifications_none_rounded),
+      const pageTitles = [
+        'macDroid',
+        'Screen Mirroring',
+        'Notifications',
+        'Photos & Media',
+        'Calls & SMS',
+        'Universal Clipboard',
+        'Remote Storage',
+        '1-Tap Transfer',
+      ];
+
+      return PopScope(
+        canPop: _selectedIndex == 0,
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) return;
+          if (_selectedIndex != 0) {
+            setState(() => _selectedIndex = 0);
+          }
+        },
+        child: Scaffold(
+          appBar: AppBar(
+            leading: _selectedIndex != 0
+                ? IconButton(
+                    icon: const Icon(Icons.arrow_back_rounded),
+                    tooltip: 'Back to Home',
+                    onPressed: () => setState(() => _selectedIndex = 0),
+                  )
+                : null,
+            title: Text(pageTitles[_selectedIndex.clamp(0, pageTitles.length - 1)]),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.qr_code_scanner_rounded),
+                tooltip: 'Pair Device',
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (_) => PairingQrDialog(state: widget.state),
+                  );
+                },
               ),
-              selectedIcon: const Icon(Icons.notifications_rounded, color: AppTheme.accent),
-              label: 'Alerts',
-            ),
-            const NavigationDestination(
-              icon: Icon(Icons.photo_library_outlined),
-              selectedIcon: Icon(Icons.photo_library_rounded, color: AppTheme.accent),
-              label: 'Photos',
-            ),
-            const NavigationDestination(
-              icon: Icon(Icons.phone_outlined),
-              selectedIcon: Icon(Icons.phone_rounded, color: AppTheme.accent),
-              label: 'Calls',
-            ),
-          ],
+            ],
+          ),
+          body: IndexedStack(
+            index: _selectedIndex,
+            children: pages,
+          ),
+          bottomNavigationBar: NavigationBar(
+            selectedIndex: _selectedIndex < 5 ? _selectedIndex : 0,
+            backgroundColor: AppTheme.surface,
+            indicatorColor: AppTheme.primary.withOpacity(0.2),
+            onDestinationSelected: (idx) => setState(() => _selectedIndex = idx),
+            destinations: [
+              const NavigationDestination(
+                icon: Icon(Icons.dashboard_outlined),
+                selectedIcon: Icon(Icons.dashboard_rounded, color: AppTheme.accent),
+                label: 'Home',
+              ),
+              const NavigationDestination(
+                icon: Icon(Icons.phonelink_ring_outlined),
+                selectedIcon: Icon(Icons.phonelink_ring_rounded, color: AppTheme.accent),
+                label: 'Mirror',
+              ),
+              NavigationDestination(
+                icon: Badge(
+                  isLabelVisible: widget.state.notifications.isNotEmpty,
+                  label: Text('${widget.state.notifications.length}'),
+                  child: const Icon(Icons.notifications_none_rounded),
+                ),
+                selectedIcon: const Icon(Icons.notifications_rounded, color: AppTheme.accent),
+                label: 'Alerts',
+              ),
+              const NavigationDestination(
+                icon: Icon(Icons.photo_library_outlined),
+                selectedIcon: Icon(Icons.photo_library_rounded, color: AppTheme.accent),
+                label: 'Photos',
+              ),
+              const NavigationDestination(
+                icon: Icon(Icons.phone_outlined),
+                selectedIcon: Icon(Icons.phone_rounded, color: AppTheme.accent),
+                label: 'Calls',
+              ),
+            ],
+          ),
         ),
       );
     }

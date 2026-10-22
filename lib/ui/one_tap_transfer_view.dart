@@ -22,16 +22,20 @@ class OneTapTransferView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 12,
+              runSpacing: 10,
               children: [
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     const Text(
                       'One-Tap File Transfer',
                       style: TextStyle(
-                        fontSize: 24,
+                        fontSize: 22,
                         fontWeight: FontWeight.w700,
                         letterSpacing: -0.5,
                       ),
@@ -53,10 +57,11 @@ class OneTapTransferView extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: AppTheme.emerald.withOpacity(0.3)),
                     ),
-                    child: Row(
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.bolt_rounded, color: AppTheme.emerald, size: 18),
-                        const SizedBox(width: 6),
+                        Icon(Icons.bolt_rounded, color: AppTheme.emerald, size: 18),
+                        SizedBox(width: 6),
                         Text(
                           'Direct P2P Ready',
                           style: TextStyle(

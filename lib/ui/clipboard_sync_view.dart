@@ -68,6 +68,7 @@ class _ClipboardSyncViewState extends State<ClipboardSyncView> {
                     border: Border.all(color: AppTheme.border),
                   ),
                   child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Container(
                         width: 10,

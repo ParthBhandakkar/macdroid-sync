@@ -180,51 +180,83 @@ class HomeDashboard extends StatelessWidget {
                     ],
                   ),
 
-                  // Telemetry Strip
+                  // Telemetry Strip (Responsive 2x2 grid on mobile, inline on desktop)
                   const SizedBox(height: 16),
                   const Divider(color: AppTheme.border, height: 1),
                   const SizedBox(height: 14),
 
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        // Battery
-                        _buildTelemetryItem(
-                          icon: telemetry.isCharging
-                              ? Icons.battery_charging_full_rounded
-                              : Icons.battery_std_rounded,
-                          label: 'Battery',
-                          value: '${telemetry.batteryLevel}%${telemetry.isCharging ? ' (Fast)' : ''}',
-                          iconColor: telemetry.batteryLevel > 20 ? AppTheme.emerald : AppTheme.rose,
-                        ),
-                        const SizedBox(width: 28),
-                        // Wi-Fi
-                        _buildTelemetryItem(
-                          icon: Icons.wifi_rounded,
-                          label: 'Wi-Fi',
-                          value: telemetry.wifiSsid ?? 'Not connected',
-                          iconColor: AppTheme.accent,
-                        ),
-                        const SizedBox(width: 28),
-                        // Cellular 5G
-                        _buildTelemetryItem(
-                          icon: Icons.signal_cellular_alt_rounded,
-                          label: 'Cellular',
-                          value: '${telemetry.cellularCarrier ?? "5G Network"} (${telemetry.cellularBars}/4)',
-                          iconColor: Colors.orangeAccent,
-                        ),
-                        const SizedBox(width: 28),
-                        // Storage
-                        _buildTelemetryItem(
-                          icon: Icons.pie_chart_rounded,
-                          label: 'Internal Storage',
-                          value: telemetry.formattedStorage,
-                          iconColor: Colors.purpleAccent,
-                        ),
-                      ],
-                    ),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isMobile = constraints.maxWidth < 600;
+
+                      final batteryItem = _buildTelemetryItem(
+                        icon: telemetry.isCharging
+                            ? Icons.battery_charging_full_rounded
+                            : Icons.battery_std_rounded,
+                        label: 'Battery',
+                        value: '${telemetry.batteryLevel}%${telemetry.isCharging ? ' (Fast)' : ''}',
+                        iconColor: telemetry.batteryLevel > 20 ? AppTheme.emerald : AppTheme.rose,
+                      );
+
+                      final wifiItem = _buildTelemetryItem(
+                        icon: Icons.wifi_rounded,
+                        label: 'Wi-Fi',
+                        value: telemetry.wifiSsid ?? 'Not connected',
+                        iconColor: AppTheme.accent,
+                      );
+
+                      final cellularItem = _buildTelemetryItem(
+                        icon: Icons.signal_cellular_alt_rounded,
+                        label: 'Cellular',
+                        value: '${telemetry.cellularCarrier ?? "5G Network"} (${telemetry.cellularBars}/4)',
+                        iconColor: Colors.orangeAccent,
+                      );
+
+                      final storageItem = _buildTelemetryItem(
+                        icon: Icons.pie_chart_rounded,
+                        label: 'Internal Storage',
+                        value: telemetry.formattedStorage,
+                        iconColor: Colors.purpleAccent,
+                      );
+
+                      if (isMobile) {
+                        return Column(
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(child: batteryItem),
+                                Container(width: 1, height: 32, color: AppTheme.border),
+                                Expanded(child: wifiItem),
+                              ],
+                            ),
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 10),
+                              child: Divider(color: AppTheme.border, height: 1),
+                            ),
+                            Row(
+                              children: [
+                                Expanded(child: cellularItem),
+                                Container(width: 1, height: 32, color: AppTheme.border),
+                                Expanded(child: storageItem),
+                              ],
+                            ),
+                          ],
+                        );
+                      }
+
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          Expanded(child: batteryItem),
+                          Container(width: 1, height: 32, color: AppTheme.border),
+                          Expanded(child: wifiItem),
+                          Container(width: 1, height: 32, color: AppTheme.border),
+                          Expanded(child: cellularItem),
+                          Container(width: 1, height: 32, color: AppTheme.border),
+                          Expanded(child: storageItem),
+                        ],
+                      );
+                    },
                   ),
                 ],
               ),
@@ -460,6 +492,14 @@ class HomeDashboard extends StatelessWidget {
                     badge: 'Direct P2P',
                     onTap: () => onNavigateTab(6),
                   ),
+                  _buildHubCard(
+                    title: '1-Tap File Transfer',
+                    subtitle: 'Direct high-speed P2P binary chunk stream',
+                    icon: Icons.send_to_mobile_rounded,
+                    color: AppTheme.emerald,
+                    badge: 'High Speed',
+                    onTap: () => onNavigateTab(7),
+                  ),
                 ];
 
                 return Wrap(
@@ -485,17 +525,31 @@ class HomeDashboard extends StatelessWidget {
     required Color iconColor,
   }) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Row(
           mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, size: 16, color: iconColor),
             const SizedBox(width: 6),
-            Text(value, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+            Flexible(
+              child: Text(
+                value,
+                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 2),
-        Text(label, style: const TextStyle(fontSize: 11, color: AppTheme.textMuted)),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 11, color: AppTheme.textMuted),
+          overflow: TextOverflow.ellipsis,
+          maxLines: 1,
+        ),
       ],
     );
   }

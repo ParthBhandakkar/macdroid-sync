@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:path/path.dart' as p;
 import '../models/peer_device.dart';
 import '../models/clipboard_entry.dart';
 import '../models/remote_file_entry.dart';
@@ -102,6 +103,7 @@ class MacDroidState extends ChangeNotifier {
       localPlatform = DevicePlatform.android;
       localDeviceName = 'Android Phone';
       localDeviceId = 'droid-$rand';
+      _currentRemotePath = '/storage/emulated/0';
     } else {
       localPlatform = DevicePlatform.unknown;
       localDeviceName = 'Device-$rand';
@@ -360,11 +362,22 @@ class MacDroidState extends ChangeNotifier {
     }
   }
 
-  // Browse remote path
+  // Browse remote or local storage
   void browseRemoteDirectory(String path) {
-    if (_activePeer == null) return;
+    if (_activePeer == null) {
+      _isLoadingFiles = true;
+      _currentRemotePath = path;
+      notifyListeners();
+      RemoteFileService.listDirectory(path).then((entries) {
+        _isLoadingFiles = false;
+        _remoteFiles = entries;
+        notifyListeners();
+      });
+      return;
+    }
     _isLoadingFiles = true;
     _remotePathHistory.add(_currentRemotePath);
+    _currentRemotePath = path;
     notifyListeners();
 
     final reqId = 'req-${DateTime.now().millisecondsSinceEpoch}';
@@ -379,7 +392,12 @@ class MacDroidState extends ChangeNotifier {
       final previous = _remotePathHistory.removeLast();
       browseRemoteDirectory(previous);
     } else {
-      browseRemoteDirectory('/');
+      final parent = p.dirname(_currentRemotePath);
+      if (parent != _currentRemotePath && parent.isNotEmpty) {
+        browseRemoteDirectory(parent);
+      } else {
+        browseRemoteDirectory(localPlatform == DevicePlatform.android ? '/storage/emulated/0' : '/');
+      }
     }
   }
 

@@ -22,6 +22,9 @@ class _RemoteFileExplorerState extends State<RemoteFileExplorer> {
   void initState() {
     super.initState();
     _pathController.text = widget.state.currentRemotePath;
+    if (widget.state.remoteFiles.isEmpty) {
+      widget.state.browseRemoteDirectory(widget.state.currentRemotePath);
+    }
   }
 
   @override
@@ -90,21 +93,47 @@ class _RemoteFileExplorerState extends State<RemoteFileExplorer> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      activePeer != null
-                          ? 'Browse Storage: ${activePeer.name}'
-                          : 'Remote Device File Explorer',
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.5,
-                      ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            activePeer != null
+                                ? 'Browse: ${activePeer.name}'
+                                : 'Device File Explorer',
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: -0.5,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: activePeer != null
+                                ? AppTheme.emerald.withOpacity(0.15)
+                                : AppTheme.primary.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            activePeer != null ? 'P2P Mesh' : 'Local Storage',
+                            style: TextStyle(
+                              color: activePeer != null ? AppTheme.emerald : AppTheme.accent,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 4),
                     Text(
                       activePeer != null
                           ? 'Browse, navigate, and download files from ${activePeer.name}'
-                          : 'Pair a device to explore its internal storage, folders, and files',
+                          : 'Explore internal storage, folders, and APKs on this device',
                       style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
                     ),
                   ],
@@ -121,100 +150,140 @@ class _RemoteFileExplorerState extends State<RemoteFileExplorer> {
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 18),
 
-            // Navigation Address Bar
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppTheme.surface,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppTheme.border),
-              ),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_upward_rounded, size: 20),
-                    tooltip: 'Parent Folder',
-                    onPressed: () => widget.state.navigateUpRemote(),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.refresh_rounded, size: 20),
-                    tooltip: 'Refresh',
-                    onPressed: () => widget.state.browseRemoteDirectory(_pathController.text),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: TextField(
-                      controller: _pathController,
-                      style: const TextStyle(fontSize: 13, fontFamily: 'monospace'),
-                      decoration: const InputDecoration(
-                        isDense: true,
-                        hintText: 'Enter remote directory path...',
-                        border: InputBorder.none,
-                        enabledBorder: InputBorder.none,
-                        focusedBorder: InputBorder.none,
-                        fillColor: Colors.transparent,
-                      ),
-                      onSubmitted: (val) {
-                        widget.state.browseRemoteDirectory(val.trim());
-                      },
+            // Responsive Navigation Address & Filter Bar
+            LayoutBuilder(
+              builder: (context, barConstraints) {
+                final isNarrow = barConstraints.maxWidth < 600;
+
+                final addressInput = Expanded(
+                  child: TextField(
+                    controller: _pathController,
+                    style: const TextStyle(fontSize: 12, fontFamily: 'monospace'),
+                    decoration: const InputDecoration(
+                      isDense: true,
+                      hintText: 'Directory path...',
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      fillColor: Colors.transparent,
                     ),
+                    onSubmitted: (val) {
+                      widget.state.browseRemoteDirectory(val.trim());
+                    },
                   ),
-                  const SizedBox(width: 12),
-                  SizedBox(
-                    width: 200,
-                    child: TextField(
-                      controller: _searchController,
-                      style: const TextStyle(fontSize: 12),
-                      decoration: const InputDecoration(
-                        hintText: 'Filter files...',
-                        isDense: true,
-                        prefixIcon: Icon(Icons.search, size: 16),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      ),
-                      onChanged: (val) {
-                        setState(() => _searchFilter = val);
-                      },
+                );
+
+                final searchField = SizedBox(
+                  width: isNarrow ? double.infinity : 180,
+                  child: TextField(
+                    controller: _searchController,
+                    style: const TextStyle(fontSize: 12),
+                    decoration: InputDecoration(
+                      hintText: 'Filter files...',
+                      isDense: true,
+                      prefixIcon: const Icon(Icons.search, size: 16),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      filled: isNarrow,
+                      fillColor: AppTheme.surface,
+                      border: isNarrow
+                          ? OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: const BorderSide(color: AppTheme.border),
+                            )
+                          : InputBorder.none,
+                      enabledBorder: isNarrow
+                          ? OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: const BorderSide(color: AppTheme.border),
+                            )
+                          : InputBorder.none,
                     ),
+                    onChanged: (val) {
+                      setState(() => _searchFilter = val);
+                    },
                   ),
-                ],
-              ),
+                );
+
+                if (isNarrow) {
+                  return Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppTheme.surface,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppTheme.border),
+                        ),
+                        child: Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.arrow_upward_rounded, size: 18),
+                              tooltip: 'Parent Folder',
+                              onPressed: () => widget.state.navigateUpRemote(),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.refresh_rounded, size: 18),
+                              tooltip: 'Refresh',
+                              onPressed: () => widget.state.browseRemoteDirectory(_pathController.text),
+                            ),
+                            const SizedBox(width: 4),
+                            addressInput,
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      searchField,
+                    ],
+                  );
+                }
+
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppTheme.surface,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: AppTheme.border),
+                  ),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_upward_rounded, size: 20),
+                        tooltip: 'Parent Folder',
+                        onPressed: () => widget.state.navigateUpRemote(),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.refresh_rounded, size: 20),
+                        tooltip: 'Refresh',
+                        onPressed: () => widget.state.browseRemoteDirectory(_pathController.text),
+                      ),
+                      const SizedBox(width: 8),
+                      addressInput,
+                      const SizedBox(width: 10),
+                      Container(width: 1, height: 24, color: AppTheme.border),
+                      const SizedBox(width: 10),
+                      searchField,
+                    ],
+                  ),
+                );
+              },
             ),
 
             const SizedBox(height: 16),
 
-            // Content List or Empty State
+            // Content List or Loading
             Expanded(
-              child: activePeer == null
-                  ? Center(
+              child: widget.state.isLoadingFiles
+                  ? const Center(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.phonelink_erase_rounded, size: 54, color: AppTheme.textMuted.withOpacity(0.4)),
-                          const SizedBox(height: 16),
-                          const Text(
-                            'No Paired Device Connected',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                          ),
-                          const SizedBox(height: 6),
-                          const Text(
-                            'Pair your Android phone or PC via QR Code to browse its files.',
-                            style: TextStyle(color: AppTheme.textMuted, fontSize: 13),
-                          ),
+                          CircularProgressIndicator(strokeWidth: 2, color: AppTheme.accent),
+                          SizedBox(height: 16),
+                          Text('Loading directory contents...', style: TextStyle(color: AppTheme.textSecondary)),
                         ],
                       ),
-                    )
-                  : widget.state.isLoadingFiles
-                      ? const Center(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              CircularProgressIndicator(strokeWidth: 2, color: AppTheme.accent),
-                              SizedBox(height: 16),
-                              Text('Loading directory contents...', style: TextStyle(color: AppTheme.textSecondary)),
-                            ],
-                          ),
                         )
                       : filtered.isEmpty
                           ? Center(
@@ -278,23 +347,37 @@ class _RemoteFileExplorerState extends State<RemoteFileExplorer> {
                                             ),
                                           ),
                                           if (!entry.isDirectory)
-                                            ElevatedButton.icon(
-                                              icon: const Icon(Icons.download_rounded, size: 14),
-                                              label: const Text('1-Tap Download'),
-                                              style: ElevatedButton.styleFrom(
-                                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                                textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                                              ),
-                                              onPressed: () {
-                                                widget.state.downloadRemoteFile(entry);
-                                                ScaffoldMessenger.of(context).showSnackBar(
-                                                  SnackBar(
-                                                    content: Text('Requesting download of ${entry.name}...'),
-                                                    backgroundColor: AppTheme.primary,
-                                                  ),
-                                                );
-                                              },
-                                            )
+                                            MediaQuery.of(context).size.width < 500
+                                                ? IconButton(
+                                                    icon: const Icon(Icons.download_rounded, size: 20, color: AppTheme.accent),
+                                                    tooltip: '1-Tap Download',
+                                                    onPressed: () {
+                                                      widget.state.downloadRemoteFile(entry);
+                                                      ScaffoldMessenger.of(context).showSnackBar(
+                                                        SnackBar(
+                                                          content: Text('Requesting download of ${entry.name}...'),
+                                                          backgroundColor: AppTheme.primary,
+                                                        ),
+                                                      );
+                                                    },
+                                                  )
+                                                : ElevatedButton.icon(
+                                                    icon: const Icon(Icons.download_rounded, size: 14),
+                                                    label: const Text('1-Tap Download'),
+                                                    style: ElevatedButton.styleFrom(
+                                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                                      textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                                                    ),
+                                                    onPressed: () {
+                                                      widget.state.downloadRemoteFile(entry);
+                                                      ScaffoldMessenger.of(context).showSnackBar(
+                                                        SnackBar(
+                                                          content: Text('Requesting download of ${entry.name}...'),
+                                                          backgroundColor: AppTheme.primary,
+                                                        ),
+                                                      );
+                                                    },
+                                                  )
                                           else
                                             const Icon(Icons.chevron_right_rounded, color: AppTheme.textMuted, size: 20),
                                         ],

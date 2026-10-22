@@ -16,6 +16,7 @@ class _CallsAndSmsViewState extends State<CallsAndSmsView> with SingleTickerProv
   late final TabController _tabController;
   final TextEditingController _dialNumberCtrl = TextEditingController();
   final TextEditingController _smsMessageCtrl = TextEditingController();
+  bool _showMobileConversation = false;
 
   @override
   void initState() {
@@ -41,16 +42,20 @@ class _CallsAndSmsViewState extends State<CallsAndSmsView> with SingleTickerProv
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header Bar & Tab Bar
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 12,
+              runSpacing: 10,
               children: [
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: const [
                     Text(
                       'Calls & Messaging Hub',
                       style: TextStyle(
-                        fontSize: 24,
+                        fontSize: 22,
                         fontWeight: FontWeight.w700,
                         letterSpacing: -0.5,
                       ),
@@ -308,195 +313,220 @@ class _CallsAndSmsViewState extends State<CallsAndSmsView> with SingleTickerProv
     final activeMessages = widget.state.activeSmsMessages;
     final activeThreadId = widget.state.telephonyService.activeThreadId;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppTheme.border),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Row(
-        children: [
-          // Left: Conversations list
-          SizedBox(
-            width: 280,
-            child: Column(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  decoration: const BoxDecoration(
-                    border: Border(bottom: BorderSide(color: AppTheme.border)),
-                  ),
-                  child: const Row(
-                    children: [
-                      Icon(Icons.message_rounded, size: 16, color: AppTheme.accent),
-                      SizedBox(width: 8),
-                      Text('Conversations', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: ListView.separated(
-                    itemCount: threads.length,
-                    separatorBuilder: (_, __) => const Divider(height: 1, color: AppTheme.border),
-                    itemBuilder: (context, index) {
-                      final thread = threads[index];
-                      final isSelected = thread.threadId == activeThreadId;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 620;
 
-                      return InkWell(
-                        onTap: () {
-                          widget.state.telephonyService.selectThread(thread.threadId);
-                        },
-                        child: Container(
-                          color: isSelected ? AppTheme.primary.withOpacity(0.12) : Colors.transparent,
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    thread.contactName,
-                                    style: TextStyle(
-                                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-                                      fontSize: 13,
-                                    ),
+        Widget buildThreadsList() {
+          return Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                decoration: const BoxDecoration(
+                  border: Border(bottom: BorderSide(color: AppTheme.border)),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.message_rounded, size: 16, color: AppTheme.accent),
+                    SizedBox(width: 8),
+                    Text('Conversations', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: ListView.separated(
+                  itemCount: threads.length,
+                  separatorBuilder: (_, __) => const Divider(height: 1, color: AppTheme.border),
+                  itemBuilder: (context, index) {
+                    final thread = threads[index];
+                    final isSelected = thread.threadId == activeThreadId;
+
+                    return InkWell(
+                      onTap: () {
+                        widget.state.telephonyService.selectThread(thread.threadId);
+                        if (isMobile) {
+                          setState(() => _showMobileConversation = true);
+                        }
+                      },
+                      child: Container(
+                        color: isSelected ? AppTheme.primary.withOpacity(0.12) : Colors.transparent,
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  thread.contactName,
+                                  style: TextStyle(
+                                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                                    fontSize: 13,
                                   ),
-                                  Text(
-                                    _formatDate(thread.lastTimestamp),
-                                    style: const TextStyle(fontSize: 10, color: AppTheme.textMuted),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                thread.lastMessage,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
-                              ),
-                            ],
-                          ),
+                                ),
+                                Text(
+                                  _formatDate(thread.lastTimestamp),
+                                  style: const TextStyle(fontSize: 10, color: AppTheme.textMuted),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              thread.lastMessage,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                            ),
+                          ],
                         ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const VerticalDivider(width: 1, color: AppTheme.border),
-
-          // Right: Active Conversation
-          Expanded(
-            child: Column(
-              children: [
-                // Top Header
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                  decoration: const BoxDecoration(
-                    border: Border(bottom: BorderSide(color: AppTheme.border)),
-                  ),
-                  child: Row(
-                    children: [
-                      const CircleAvatar(
-                        radius: 16,
-                        backgroundColor: AppTheme.surfaceHover,
-                        child: Icon(Icons.person, size: 18, color: AppTheme.accent),
                       ),
-                      const SizedBox(width: 12),
-                      Column(
+                    );
+                  },
+                ),
+              ),
+            ],
+          );
+        }
+
+        Widget buildConversationChat() {
+          final currentThread = threads.firstWhere(
+            (t) => t.threadId == activeThreadId,
+            orElse: () => threads.first,
+          );
+
+          return Column(
+            children: [
+              // Top Header
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: const BoxDecoration(
+                  border: Border(bottom: BorderSide(color: AppTheme.border)),
+                ),
+                child: Row(
+                  children: [
+                    if (isMobile)
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back_rounded, size: 20),
+                        onPressed: () {
+                          setState(() => _showMobileConversation = false);
+                        },
+                      ),
+                    const CircleAvatar(
+                      radius: 16,
+                      backgroundColor: AppTheme.surfaceHover,
+                      child: Icon(Icons.person, size: 18, color: AppTheme.accent),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            threads.firstWhere((t) => t.threadId == activeThreadId, orElse: () => threads.first).contactName,
+                            currentThread.contactName,
                             style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+                            overflow: TextOverflow.ellipsis,
                           ),
                           const Text('SMS / RCS via Paired Phone', style: TextStyle(color: AppTheme.textMuted, fontSize: 11)),
                         ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
+              ),
 
-                // Messages list
-                Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: activeMessages.length,
-                    itemBuilder: (context, index) {
-                      final msg = activeMessages[index];
-                      final isMe = msg.isFromMe;
+              // Messages list
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: activeMessages.length,
+                  itemBuilder: (context, index) {
+                    final msg = activeMessages[index];
+                    final isMe = msg.isFromMe;
 
-                      return Align(
-                        alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-                        child: Container(
-                          margin: const EdgeInsets.only(bottom: 10),
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                          constraints: const BoxConstraints(maxWidth: 380),
-                          decoration: BoxDecoration(
-                            color: isMe ? AppTheme.primary : AppTheme.surfaceHover,
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                msg.body,
-                                style: TextStyle(
-                                  color: isMe ? Colors.white : AppTheme.textPrimary,
-                                  fontSize: 13,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                _formatDate(msg.timestamp),
-                                style: TextStyle(
-                                  color: isMe ? Colors.white60 : AppTheme.textMuted,
-                                  fontSize: 9,
-                                ),
-                              ),
-                            ],
-                          ),
+                    return Align(
+                      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 10),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        constraints: const BoxConstraints(maxWidth: 380),
+                        decoration: BoxDecoration(
+                          color: isMe ? AppTheme.primary : AppTheme.surfaceHover,
+                          borderRadius: BorderRadius.circular(14),
                         ),
-                      );
-                    },
-                  ),
-                ),
-
-                // SMS Input bar
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: const BoxDecoration(
-                    border: Border(top: BorderSide(color: AppTheme.border)),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _smsMessageCtrl,
-                          decoration: const InputDecoration(
-                            hintText: 'Type text message (SMS)...',
-                            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          ),
-                          onSubmitted: (text) => _sendCurrentSms(),
+                        child: Column(
+                          crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              msg.body,
+                              style: TextStyle(
+                                color: isMe ? Colors.white : AppTheme.textPrimary,
+                                fontSize: 13,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              _formatDate(msg.timestamp),
+                              style: TextStyle(
+                                color: isMe ? Colors.white60 : AppTheme.textMuted,
+                                fontSize: 9,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(width: 10),
-                      IconButton.filled(
-                        icon: const Icon(Icons.send_rounded, size: 18),
-                        onPressed: _sendCurrentSms,
-                      ),
-                    ],
-                  ),
+                    );
+                  },
                 ),
-              ],
-            ),
+              ),
+
+              // SMS Input bar
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: const BoxDecoration(
+                  border: Border(top: BorderSide(color: AppTheme.border)),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _smsMessageCtrl,
+                        decoration: const InputDecoration(
+                          hintText: 'Type text message (SMS)...',
+                          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        ),
+                        onSubmitted: (text) => _sendCurrentSms(),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    IconButton.filled(
+                      icon: const Icon(Icons.send_rounded, size: 18),
+                      onPressed: _sendCurrentSms,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        }
+
+        return Container(
+          decoration: BoxDecoration(
+            color: AppTheme.surface,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: AppTheme.border),
           ),
-        ],
-      ),
+          clipBehavior: Clip.antiAlias,
+          child: isMobile
+              ? (_showMobileConversation ? buildConversationChat() : buildThreadsList())
+              : Row(
+                  children: [
+                    SizedBox(width: 280, child: buildThreadsList()),
+                    const VerticalDivider(width: 1, color: AppTheme.border),
+                    Expanded(child: buildConversationChat()),
+                  ],
+                ),
+        );
+      },
     );
   }
 

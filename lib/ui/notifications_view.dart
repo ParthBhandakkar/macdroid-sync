@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../models/notification_entry.dart';
 import '../services/macdroid_state.dart';
 import '../services/native_platform_service.dart';
 import '../theme/app_theme.dart';
@@ -106,18 +105,23 @@ class _NotificationsViewState extends State<NotificationsView> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header Bar
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 12,
+              runSpacing: 10,
               children: [
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         const Text(
                           'Notification Center',
                           style: TextStyle(
-                            fontSize: 24,
+                            fontSize: 22,
                             fontWeight: FontWeight.w700,
                             letterSpacing: -0.5,
                           ),
@@ -149,6 +153,7 @@ class _NotificationsViewState extends State<NotificationsView> {
                 ),
                 Wrap(
                   spacing: 10,
+                  runSpacing: 8,
                   children: [
                     if (NativePlatformService.isAndroid)
                       ElevatedButton.icon(
@@ -157,7 +162,7 @@ class _NotificationsViewState extends State<NotificationsView> {
                           foregroundColor: Colors.white,
                         ),
                         icon: const Icon(Icons.settings_suggest_rounded, size: 16),
-                        label: const Text('Grant Notification Access'),
+                        label: const Text('Access Settings'),
                         onPressed: () => NativePlatformService.openNotificationSettings(),
                       ),
                     OutlinedButton.icon(

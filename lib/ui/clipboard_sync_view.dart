@@ -34,16 +34,20 @@ class _ClipboardSyncViewState extends State<ClipboardSyncView> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 12,
+              runSpacing: 10,
               children: [
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     const Text(
                       'Universal Clipboard',
                       style: TextStyle(
-                        fontSize: 24,
+                        fontSize: 22,
                         fontWeight: FontWeight.w700,
                         letterSpacing: -0.5,
                       ),

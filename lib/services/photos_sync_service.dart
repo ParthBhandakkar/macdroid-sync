@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../models/photo_entry.dart';
 import '../protocols/macdroid_protocol.dart';
+import 'native_platform_service.dart';
 
 class PhotosSyncService {
   final void Function(String messageJson) sendMessage;
@@ -13,15 +14,32 @@ class PhotosSyncService {
     required this.sendMessage,
     required this.onStateUpdated,
   }) {
-    _populateDefaultPhotos();
+    if (NativePlatformService.isAndroid) {
+      NativePlatformService.getRecentPhotos(limit: 40).then((real) {
+        if (real.isNotEmpty) {
+          handleIncomingPhotos(real);
+        } else {
+          _populateDefaultPhotos();
+        }
+      });
+    } else {
+      _populateDefaultPhotos();
+    }
   }
 
   List<PhotoEntry> get photos => List.unmodifiable(_photos);
   bool get isLoading => _isLoading;
 
-  void requestPhotos() {
+  Future<void> requestPhotos() async {
     _isLoading = true;
     onStateUpdated();
+    if (NativePlatformService.isAndroid) {
+      final real = await NativePlatformService.getRecentPhotos(limit: 40);
+      if (real.isNotEmpty) {
+        handleIncomingPhotos(real);
+        return;
+      }
+    }
     sendMessage(MacDroidProtocol.createPhotosListRequest());
   }
 

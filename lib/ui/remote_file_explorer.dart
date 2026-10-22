@@ -80,18 +80,22 @@ class _RemoteFileExplorerState extends State<RemoteFileExplorer> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 12,
+              runSpacing: 10,
               children: [
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
                       activePeer != null
                           ? 'Browse Storage: ${activePeer.name}'
                           : 'Remote Device File Explorer',
                       style: const TextStyle(
-                        fontSize: 24,
+                        fontSize: 22,
                         fontWeight: FontWeight.w700,
                         letterSpacing: -0.5,
                       ),
@@ -99,19 +103,19 @@ class _RemoteFileExplorerState extends State<RemoteFileExplorer> {
                     const SizedBox(height: 4),
                     Text(
                       activePeer != null
-                          ? 'Browse, navigate, and download files from ${activePeer.name} with one tap'
+                          ? 'Browse, navigate, and download files from ${activePeer.name}'
                           : 'Pair a device to explore its internal storage, folders, and files',
                       style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
                     ),
                   ],
                 ),
                 // Quick Shortcuts
-                Row(
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 6,
                   children: [
                     _buildShortcutButton('Downloads', '/storage/emulated/0/Download'),
-                    const SizedBox(width: 8),
                     _buildShortcutButton('DCIM (Photos)', '/storage/emulated/0/DCIM'),
-                    const SizedBox(width: 8),
                     _buildShortcutButton('Root', '/'),
                   ],
                 ),

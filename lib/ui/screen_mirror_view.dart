@@ -58,23 +58,29 @@ class _ScreenMirrorViewState extends State<ScreenMirrorView> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header Bar
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 12,
+              runSpacing: 10,
               children: [
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Row(
+                    Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 10,
+                      runSpacing: 6,
                       children: [
                         const Text(
                           'Screen Mirroring & Control',
                           style: TextStyle(
-                            fontSize: 24,
+                            fontSize: 22,
                             fontWeight: FontWeight.w700,
                             letterSpacing: -0.5,
                           ),
                         ),
-                        const SizedBox(width: 10),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(
@@ -183,158 +189,162 @@ class _ScreenMirrorViewState extends State<ScreenMirrorView> {
 
             // Main Display Area & Side Hardware Nav
             Expanded(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Phone Device Frame
-                  Center(
-                    child: Container(
-                      width: 320,
-                      height: 640,
-                      decoration: BoxDecoration(
-                        color: Colors.black,
-                        borderRadius: BorderRadius.circular(38),
-                        border: Border.all(color: const Color(0xFF2A2A38), width: 6),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.5),
-                            blurRadius: 28,
-                            offset: const Offset(0, 10),
-                          ),
-                        ],
-                      ),
-                      clipBehavior: Clip.antiAlias,
-                      child: Stack(
-                        children: [
-                          // Interactive Screen Surface
-                          Positioned.fill(
-                            child: Listener(
-                              key: _phoneCanvasKey,
-                              onPointerDown: (e) => _handlePointerEvent(e, 'down'),
-                              onPointerMove: (e) => _handlePointerEvent(e, 'move'),
-                              onPointerUp: (e) => _handlePointerEvent(e, 'up'),
-                              child: _buildPhoneScreenContent(isStreaming, mirrorService),
+              child: Center(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.center,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Phone Device Frame
+                      Container(
+                        width: 320,
+                        height: 640,
+                        decoration: BoxDecoration(
+                          color: Colors.black,
+                          borderRadius: BorderRadius.circular(38),
+                          border: Border.all(color: const Color(0xFF2A2A38), width: 6),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.5),
+                              blurRadius: 28,
+                              offset: const Offset(0, 10),
                             ),
-                          ),
-
-                          // Dynamic Island / Camera Punch Hole Notch
-                          Positioned(
-                            top: 10,
-                            left: 0,
-                            right: 0,
-                            child: Center(
-                              child: Container(
-                                width: 90,
-                                height: 22,
-                                decoration: BoxDecoration(
-                                  color: Colors.black,
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Container(
-                                      width: 9,
-                                      height: 9,
-                                      decoration: const BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: Color(0xFF1A1A24),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Container(
-                                      width: 7,
-                                      height: 7,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: isStreaming ? AppTheme.emerald : const Color(0xFF1A1A24),
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                          ],
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: Stack(
+                          children: [
+                            // Interactive Screen Surface
+                            Positioned.fill(
+                              child: Listener(
+                                key: _phoneCanvasKey,
+                                onPointerDown: (e) => _handlePointerEvent(e, 'down'),
+                                onPointerMove: (e) => _handlePointerEvent(e, 'move'),
+                                onPointerUp: (e) => _handlePointerEvent(e, 'up'),
+                                child: _buildPhoneScreenContent(isStreaming, mirrorService),
                               ),
                             ),
-                          ),
 
-                          // Touch indicator ripple
-                          if (_lastPointerPos != null && isStreaming)
+                            // Dynamic Island / Camera Punch Hole Notch
                             Positioned(
-                              left: _lastPointerPos!.dx - 12,
-                              top: _lastPointerPos!.dy - 12,
-                              child: IgnorePointer(
+                              top: 10,
+                              left: 0,
+                              right: 0,
+                              child: Center(
                                 child: Container(
-                                  width: 24,
-                                  height: 24,
+                                  width: 90,
+                                  height: 22,
                                   decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: AppTheme.accent.withOpacity(0.4),
-                                    border: Border.all(color: AppTheme.accent, width: 1.5),
+                                    color: Colors.black,
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Container(
+                                        width: 9,
+                                        height: 9,
+                                        decoration: const BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: Color(0xFF1A1A24),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Container(
+                                        width: 7,
+                                        height: 7,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: isStreaming ? AppTheme.emerald : const Color(0xFF1A1A24),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),
                             ),
-                        ],
-                      ),
-                    ),
-                  ),
 
-                  const SizedBox(width: 24),
-
-                  // Side Hardware Navigation Bar
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-                        decoration: BoxDecoration(
-                          color: AppTheme.surface,
-                          borderRadius: BorderRadius.circular(18),
-                          border: Border.all(color: AppTheme.border),
-                        ),
-                        child: Column(
-                          children: [
-                            _buildHardwareButton(
-                              icon: Icons.arrow_back_rounded,
-                              label: 'Back',
-                              onPressed: () => mirrorService.sendNavigation('back'),
-                            ),
-                            const SizedBox(height: 10),
-                            _buildHardwareButton(
-                              icon: Icons.circle_outlined,
-                              label: 'Home',
-                              onPressed: () => mirrorService.sendNavigation('home'),
-                            ),
-                            const SizedBox(height: 10),
-                            _buildHardwareButton(
-                              icon: Icons.crop_square_rounded,
-                              label: 'Recents',
-                              onPressed: () => mirrorService.sendNavigation('recents'),
-                            ),
-                            const Divider(color: AppTheme.border, height: 20),
-                            _buildHardwareButton(
-                              icon: Icons.power_settings_new_rounded,
-                              label: 'Power',
-                              color: AppTheme.rose,
-                              onPressed: () => mirrorService.sendNavigation('power'),
-                            ),
-                            const SizedBox(height: 10),
-                            _buildHardwareButton(
-                              icon: Icons.volume_up_rounded,
-                              label: 'Vol +',
-                              onPressed: () => mirrorService.sendNavigation('volume_up'),
-                            ),
-                            const SizedBox(height: 10),
-                            _buildHardwareButton(
-                              icon: Icons.volume_down_rounded,
-                              label: 'Vol -',
-                              onPressed: () => mirrorService.sendNavigation('volume_down'),
-                            ),
+                            // Touch indicator ripple
+                            if (_lastPointerPos != null && isStreaming)
+                              Positioned(
+                                left: _lastPointerPos!.dx - 12,
+                                top: _lastPointerPos!.dy - 12,
+                                child: IgnorePointer(
+                                  child: Container(
+                                    width: 24,
+                                    height: 24,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: AppTheme.accent.withOpacity(0.4),
+                                      border: Border.all(color: AppTheme.accent, width: 1.5),
+                                    ),
+                                  ),
+                                ),
+                              ),
                           ],
                         ),
                       ),
+
+                      const SizedBox(width: 16),
+
+                      // Side Hardware Navigation Bar
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                            decoration: BoxDecoration(
+                              color: AppTheme.surface,
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(color: AppTheme.border),
+                            ),
+                            child: Column(
+                              children: [
+                                _buildHardwareButton(
+                                  icon: Icons.arrow_back_rounded,
+                                  label: 'Back',
+                                  onPressed: () => mirrorService.sendNavigation('back'),
+                                ),
+                                const SizedBox(height: 10),
+                                _buildHardwareButton(
+                                  icon: Icons.circle_outlined,
+                                  label: 'Home',
+                                  onPressed: () => mirrorService.sendNavigation('home'),
+                                ),
+                                const SizedBox(height: 10),
+                                _buildHardwareButton(
+                                  icon: Icons.crop_square_rounded,
+                                  label: 'Recents',
+                                  onPressed: () => mirrorService.sendNavigation('recents'),
+                                ),
+                                const Divider(color: AppTheme.border, height: 20),
+                                _buildHardwareButton(
+                                  icon: Icons.power_settings_new_rounded,
+                                  label: 'Power',
+                                  color: AppTheme.rose,
+                                  onPressed: () => mirrorService.sendNavigation('power'),
+                                ),
+                                const SizedBox(height: 10),
+                                _buildHardwareButton(
+                                  icon: Icons.volume_up_rounded,
+                                  label: 'Vol +',
+                                  onPressed: () => mirrorService.sendNavigation('volume_up'),
+                                ),
+                                const SizedBox(height: 10),
+                                _buildHardwareButton(
+                                  icon: Icons.volume_down_rounded,
+                                  label: 'Vol -',
+                                  onPressed: () => mirrorService.sendNavigation('volume_down'),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
-                ],
+                ),
               ),
             ),
 
@@ -348,26 +358,40 @@ class _ScreenMirrorViewState extends State<ScreenMirrorView> {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: AppTheme.border),
               ),
-              child: Row(
+              child: Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 12,
+                runSpacing: 6,
                 children: [
-                  const Icon(Icons.speed_rounded, size: 16, color: AppTheme.accent),
-                  const SizedBox(width: 8),
-                  Text(
-                    isStreaming
-                        ? 'Low-Latency WebRTC Stream • ~18ms RTT • Hardware H.264 Decoder'
-                        : 'Stream offline. Click "Start Mirroring" to establish a direct display pipe.',
-                    style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.speed_rounded, size: 16, color: AppTheme.accent),
+                      const SizedBox(width: 8),
+                      Text(
+                        isStreaming
+                            ? 'WebRTC 60FPS • ~18ms RTT • H.264'
+                            : 'Stream offline • Standby mode ready',
+                        style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                      ),
+                    ],
                   ),
-                  const Spacer(),
-                  if (mirrorService.lastInjectedEvent != null)
-                    Text(
-                      mirrorService.lastInjectedEvent!,
-                      style: const TextStyle(fontSize: 11, fontFamily: 'monospace', color: AppTheme.emerald),
-                    ),
-                  const SizedBox(width: 12),
-                  Text(
-                    activePeer != null ? activePeer.name : 'No device paired',
-                    style: const TextStyle(fontSize: 11, color: AppTheme.textMuted),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (mirrorService.lastInjectedEvent != null) ...[
+                        Text(
+                          mirrorService.lastInjectedEvent!,
+                          style: const TextStyle(fontSize: 11, fontFamily: 'monospace', color: AppTheme.emerald),
+                        ),
+                        const SizedBox(width: 12),
+                      ],
+                      Text(
+                        activePeer != null ? activePeer.name : 'No device paired',
+                        style: const TextStyle(fontSize: 11, color: AppTheme.textMuted),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -441,7 +465,7 @@ class _ScreenMirrorViewState extends State<ScreenMirrorView> {
       ),
       child: Column(
         children: [
-          const SizedBox(height: 36),
+          const SizedBox(height: 18),
           // Top Status Bar
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -464,28 +488,29 @@ class _ScreenMirrorViewState extends State<ScreenMirrorView> {
               ],
             ),
           ),
-          const SizedBox(height: 40),
+          const SizedBox(height: 10),
 
           // Clock Widget
           Text(
             timeStr,
-            style: const TextStyle(fontSize: 54, fontWeight: FontWeight.w300, color: Colors.white),
+            style: const TextStyle(fontSize: 46, fontWeight: FontWeight.w300, color: Colors.white),
           ),
           const Text(
             'Wednesday, October 21',
-            style: TextStyle(fontSize: 13, color: Colors.white70),
+            style: TextStyle(fontSize: 12, color: Colors.white70),
           ),
 
           const Spacer(),
 
           // Simulated App Icons Grid
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
             child: GridView.count(
               shrinkWrap: true,
               crossAxisCount: 4,
-              mainAxisSpacing: 16,
-              crossAxisSpacing: 16,
+              mainAxisSpacing: 6,
+              crossAxisSpacing: 8,
+              childAspectRatio: 0.82,
               physics: const NeverScrollableScrollPhysics(),
               children: [
                 _buildAppIcon(Icons.phone_rounded, 'Phone', const Color(0xFF22C55E)),
@@ -500,7 +525,7 @@ class _ScreenMirrorViewState extends State<ScreenMirrorView> {
             ),
           ),
 
-          const SizedBox(height: 28),
+          const SizedBox(height: 12),
 
           // Bottom Home Bar Pill
           Center(
@@ -513,7 +538,7 @@ class _ScreenMirrorViewState extends State<ScreenMirrorView> {
               ),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
         ],
       ),
     );
@@ -524,22 +549,22 @@ class _ScreenMirrorViewState extends State<ScreenMirrorView> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 46,
-          height: 46,
+          width: 40,
+          height: 40,
           decoration: BoxDecoration(
             color: color,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(10),
             boxShadow: [
               BoxShadow(
                 color: color.withOpacity(0.3),
-                blurRadius: 8,
-                offset: const Offset(0, 3),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
               ),
             ],
           ),
-          child: Icon(icon, color: Colors.white, size: 24),
+          child: Icon(icon, color: Colors.white, size: 22),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 3),
         Text(
           name,
           style: const TextStyle(fontSize: 10, color: Colors.white70),

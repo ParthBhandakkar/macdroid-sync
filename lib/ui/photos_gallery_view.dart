@@ -14,8 +14,6 @@ class PhotosGalleryView extends StatefulWidget {
 }
 
 class _PhotosGalleryViewState extends State<PhotosGalleryView> {
-  PhotoEntry? _selectedPhoto;
-
   @override
   Widget build(BuildContext context) {
     final photos = widget.state.photos;
@@ -28,18 +26,23 @@ class _PhotosGalleryViewState extends State<PhotosGalleryView> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header Bar
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 12,
+              runSpacing: 10,
               children: [
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         const Text(
                           'Recent Photos & Media',
                           style: TextStyle(
-                            fontSize: 24,
+                            fontSize: 22,
                             fontWeight: FontWeight.w700,
                             letterSpacing: -0.5,
                           ),
@@ -64,7 +67,7 @@ class _PhotosGalleryViewState extends State<PhotosGalleryView> {
                     ),
                     const SizedBox(height: 4),
                     const Text(
-                      'Instant camera roll sync • Fast thumbnail cache • 1-tap download to desktop',
+                      'Instant camera roll sync • Fast thumbnail cache • 1-tap download',
                       style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
                     ),
                   ],
